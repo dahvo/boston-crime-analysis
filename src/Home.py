@@ -1,16 +1,26 @@
 import streamlit as st
 
-meta_tags = """
-<meta property="og:title" content="Boston Crime Analysis Dashboard">
-<meta property="og:description" content="Interactive dashboard analyzing crime patterns in Boston using BPD incident reports from 2020-2024. Features comprehensive crime analysis, temporal patterns, and geographic distribution.">
-<meta property="og:image" content="src/content/Screenshot.png">
-<meta property="og:url" content="https://dahvo-boston-crime-analysis-srchome-zidpiq.streamlit.app">
-<meta property="og:type" content="website">
-"""
+# Define metadata as a dictionary for cleaner management
+metadata = {
+    "title": "Boston Crime Analysis Dashboard",
+    "description": "Interactive dashboard analyzing crime patterns in Boston using BPD incident reports from 2020-2024. Features comprehensive crime analysis, temporal patterns, and geographic distribution.",
+    "image": "https://raw.githubusercontent.com/dahvo/boston-crime-analysis/main/src/content/Screenshot.png",
+    "url": "https://dahvo-boston-crime-analysis-srchome-zidpiq.streamlit.app",
+}
 
 
-def inject_meta_tags():
-    st.markdown(meta_tags, unsafe_allow_html=True)
+def inject_custom_html():
+    custom_html = f"""
+        <head>
+            <title>{metadata['title']}</title>
+            <meta property="og:title" content="{metadata['title']}">
+            <meta property="og:description" content="{metadata['description']}">
+            <meta property="og:image" content="{metadata['image']}">
+            <meta property="og:url" content="{metadata['url']}">
+            <meta property="og:type" content="website">
+        </head>
+    """
+    st.markdown(custom_html, unsafe_allow_html=True)
 
 
 @st.cache_data
@@ -23,21 +33,15 @@ def render_markdown():
     st.markdown(load_content())
 
 
-@st.cache_data
-def load_html():
-    with open("src/content/home.html", "r", encoding="utf-8") as f:
-        file = f.read()
-        print()
-        return file
-
-
 def main():
+    # Configure the page with the same metadata
     st.set_page_config(
-        page_title="Boston Crime Analysis",
+        page_title=metadata["title"],
         page_icon="🚔",
+        menu_items={"About": metadata["description"]},
     )
 
-    inject_meta_tags()
+    inject_custom_html()
     render_markdown()
 
 
