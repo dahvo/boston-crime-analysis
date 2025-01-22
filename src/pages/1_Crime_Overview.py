@@ -10,13 +10,6 @@ from streamlit_folium import folium_static
 from utils.crime_categories import CATEGORY_DISPLAY_NAMES
 
 
-def create_map():
-    """Create a new map instance"""
-    return folium.Map(
-        location=[42.32000, -71.057083], zoom_start=11, tiles="OpenStreetMap"
-    )
-
-
 def calculate_yearly_change(df, category):
     """Calculate average yearly change for a category"""
     yearly_counts = df[df["CATEGORY"] == category].groupby("YEAR").size().sort_index()
@@ -35,7 +28,6 @@ def load_heatmap_data(data):
     if len(valid_locations) == 0:
         return None
 
-    # Pre-process data for each category
     category_data = {}
     for category in valid_locations["CATEGORY"].unique():
         cat_data = valid_locations[valid_locations["CATEGORY"] == category]
@@ -54,7 +46,9 @@ def render_category_heatmap(data):
         st.warning("No valid location data available for heatmap")
         return
 
-    m = create_map()
+    m = folium.Map(
+        location=[42.32000, -71.057083], zoom_start=11, tiles="OpenStreetMap"
+    )
 
     for category, heat_data in category_data.items():
         fg = folium.FeatureGroup(name=str(category))
@@ -66,7 +60,6 @@ def render_category_heatmap(data):
 
 
 def geographical_analysis(data):
-    st.subheader("Geographic Distribution")
 
     district_mapping = get_district_mapping()
     data = data.copy()
@@ -168,36 +161,12 @@ def render_category_breakdown(data):
             st.dataframe(categorization_df[display_cols], use_container_width=True)
 
 
-def heatmap_component(data):
-    st.subheader("Categorical Incidents Heatmap")
-    render_category_heatmap(data)
-
-
-def display_categories(series):
-    """Convert category codes to display names"""
-    return series.map(CATEGORY_DISPLAY_NAMES)
-
-
-def show_insights():
-    st.title("Crime Data Insights")
-    df = load_data()
-
-    # 1. Basic Statistics
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("Total Incidents", len(df))
-    with col2:
-        st.metric("Unique Crime Types", df["OFFENSE_CODE"].nunique())
-    with col3:
-        st.metric("Districts Covered", df["DISTRICT"].nunique())
-
-    # 2. Time Analysis
-    st.subheader("Temporal Patterns")
+def temporal_analysis(data):
     tab1, tab2, tab3 = st.tabs(["Daily", "Monthly", "Yearly"])
 
     with tab1:
         daily_crimes = (
-            df["DAY_OF_WEEK"]
+            data["DAY_OF_WEEK"]
             .value_counts()
             .reindex(
                 [
@@ -220,7 +189,7 @@ def show_insights():
         st.plotly_chart(fig_daily, use_container_width=True)
 
     with tab2:
-        monthly_crimes = df["MONTH"].value_counts().sort_index()
+        monthly_crimes = data["MONTH"].value_counts().sort_index()
         month_names = {i: calendar.month_name[i] for i in monthly_crimes.index}
         monthly_crimes.index = monthly_crimes.index.map(month_names)
 
@@ -233,7 +202,7 @@ def show_insights():
         st.plotly_chart(fig_monthly, use_container_width=True)
 
     with tab3:
-        yearly_crimes = df["YEAR"].value_counts().sort_index()
+        yearly_crimes = data["YEAR"].value_counts().sort_index()
         fig_yearly = px.bar(
             x=yearly_crimes.index,
             y=yearly_crimes.values,
@@ -242,9 +211,9 @@ def show_insights():
         )
         st.plotly_chart(fig_yearly, use_container_width=True)
 
-    # 3. Crime Patterns
-    st.subheader("Crime Categories")
-    top_crimes = df["CATEGORY"].value_counts()
+
+def crime_patterns(data):
+    top_crimes = data["CATEGORY"].value_counts()
     fig_crimes = px.pie(
         values=top_crimes.values,
         names=display_categories(top_crimes.index),
@@ -252,14 +221,43 @@ def show_insights():
     )
     st.plotly_chart(fig_crimes, use_container_width=True)
 
+
+def display_categories(series):
+    """Convert category codes to display names"""
+    return series.map(CATEGORY_DISPLAY_NAMES)
+
+
+def show_insights():
+    st.title("Crime Data Insights")
+    df = load_data()
+
+    # 1. Basic Statistics
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Total Incidents", len(df))
+    with col2:
+        st.metric("Unique Crime Types", df["OFFENSE_CODE"].nunique())
+    with col3:
+        st.metric("Districts Covered", df["DISTRICT"].nunique())
+
+    # 2. Time Analysis
+    st.subheader("Temporal Patterns")
+    temporal_analysis(df)
+
+    # 3. Crime Patterns
+    st.subheader("Crime Categories")
+    crime_patterns(df)
+
     # Add categorization breakdown
     render_category_breakdown(df)
 
     # 4. Geographic Analysis
+    st.subheader("Geographic Distribution")
     geographical_analysis(df)
 
     # 5. Cateorical Heatmap
-    heatmap_component(df)
+    st.subheader("Categorical Incidents Heatmap")
+    render_category_heatmap(df)
 
 
 if __name__ == "__main__":
