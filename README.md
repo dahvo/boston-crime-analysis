@@ -79,7 +79,3 @@ This project is licensed under the MIT License
 
 - Boston Police Department and Analyze Boston for providing the data
 - Streamlit team for the amazing framework
-
-## 📫 Contact
-
-If you have any questions or feedback, please open an issue or contact [your contact info].

@@ -196,7 +196,21 @@ def show_insights():
     tab1, tab2, tab3 = st.tabs(["Daily", "Monthly", "Yearly"])
 
     with tab1:
-        daily_crimes = df["DAY_OF_WEEK"].value_counts()
+        daily_crimes = (
+            df["DAY_OF_WEEK"]
+            .value_counts()
+            .reindex(
+                [
+                    "Monday",
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                    "Friday",
+                    "Saturday",
+                    "Sunday",
+                ]
+            )
+        )
         fig_daily = px.bar(
             x=daily_crimes.index,
             y=daily_crimes.values,
