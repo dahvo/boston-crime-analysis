@@ -21,15 +21,7 @@ def inject_metadata():
     ]
 
     meta_html = "\n".join(meta_tags)
-    st.markdown(
-        f"""
-        <!DOCTYPE html>
-        <html>
-        <head>{meta_html}</head>
-        </html>
-        """,
-        unsafe_allow_html=True,
-    )
+    st.markdown(meta_html, unsafe_allow_html=True)
 
 
 @st.cache_data
