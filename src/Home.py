@@ -4,7 +4,7 @@ meta_tags = """
 <meta property="og:title" content="Boston Crime Analysis Dashboard">
 <meta property="og:description" content="Interactive dashboard analyzing crime patterns in Boston using BPD incident reports from 2020-2024. Features comprehensive crime analysis, temporal patterns, and geographic distribution.">
 <meta property="og:image" content="src/content/Screenshot.png">
-<meta property="og:url" content="https://boston-crime-analysis.streamlit.app">
+<meta property="og:url" content="https://dahvo-boston-crime-analysis-srchome-zidpiq.streamlit.app">
 <meta property="og:type" content="website">
 """
 
