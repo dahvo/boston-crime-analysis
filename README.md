@@ -33,10 +33,10 @@ pip install -r requirements.txt
 streamlit run src/home.py
 ```
 
-## 📁 Project Structure
+## Project Structure
 
 ```
-streamlit-app/
+boston-crime-analysis/
 ├── src/
 │   ├── home.py                     # Application entry point
 │   ├── pages/
@@ -49,7 +49,7 @@ streamlit-app/
 └── README.md
 ```
 
-## 🛠️ Built With
+## Built With
 
 - [Streamlit](https://streamlit.io/) - The web framework used
 - [Plotly](https://plotly.com/) - Interactive visualizations
