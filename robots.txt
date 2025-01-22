@@ -1,0 +1,4 @@
+
+User-agent: *
+Allow: /
+Sitemap: https://dahvo-boston-crime-analysis-srchome-zidpiq.streamlit.app/sitemap.xml

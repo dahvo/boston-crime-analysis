@@ -1,6 +1,5 @@
 import streamlit as st
 
-# Define metadata as a dictionary for cleaner management
 metadata = {
     "title": "Boston Crime Analysis Dashboard",
     "description": "Interactive dashboard analyzing crime patterns in Boston using BPD incident reports from 2020-2024. Features comprehensive crime analysis, temporal patterns, and geographic distribution.",
@@ -9,18 +8,28 @@ metadata = {
 }
 
 
-def inject_custom_html():
-    custom_html = f"""
-        <head>
-            <title>{metadata['title']}</title>
-            <meta property="og:title" content="{metadata['title']}">
-            <meta property="og:description" content="{metadata['description']}">
-            <meta property="og:image" content="{metadata['image']}">
-            <meta property="og:url" content="{metadata['url']}">
-            <meta property="og:type" content="website">
-        </head>
-    """
-    st.markdown(custom_html, unsafe_allow_html=True)
+def inject_metadata():
+    meta_tags = [
+        f'<title>{metadata["title"]}</title>',
+        '<meta charset="utf-8">',
+        f'<meta name="description" content="{metadata["description"]}">',
+        f'<meta property="og:title" content="{metadata["title"]}">',
+        f'<meta property="og:description" content="{metadata["description"]}">',
+        f'<meta property="og:image" content="{metadata["image"]}">',
+        f'<meta property="og:url" content="{metadata["url"]}">',
+        '<meta property="og:type" content="website">',
+    ]
+
+    meta_html = "\n".join(meta_tags)
+    st.markdown(
+        f"""
+        <!DOCTYPE html>
+        <html>
+        <head>{meta_html}</head>
+        </html>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 @st.cache_data
@@ -34,15 +43,20 @@ def render_markdown():
 
 
 def main():
-    # Configure the page with the same metadata
     st.set_page_config(
         page_title=metadata["title"],
         page_icon="🚔",
-        menu_items={"About": metadata["description"]},
+        layout="wide",
+        menu_items={
+            "About": metadata["description"],
+            "Get Help": metadata["url"],
+        },
     )
 
-    inject_custom_html()
-    render_markdown()
+    inject_metadata()
+
+    content = load_content()
+    st.markdown(content)
 
 
 if __name__ == "__main__":
