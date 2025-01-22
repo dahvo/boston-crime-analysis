@@ -99,7 +99,21 @@ def temporal_analysis(data):
         )
         st.plotly_chart(fig_hourly, use_container_width=True)
 
-        dow_counts = data["DAY_OF_WEEK"].value_counts().sort_index()
+        dow_counts = (
+            data["DAY_OF_WEEK"]
+            .value_counts()
+            .reindex(
+                [
+                    "Monday",
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                    "Friday",
+                    "Saturday",
+                    "Sunday",
+                ]
+            )
+        )
         fig_dow = px.bar(
             x=dow_counts.index,
             y=dow_counts.values,
