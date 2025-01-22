@@ -8,4 +8,3 @@ streamlit-folium
 matplotlib
 seaborn
 plotly
-streamlit-plotly
