@@ -1,7 +1,7 @@
 import streamlit as st
 import folium
 from folium.plugins import HeatMap
-from streamlit_folium import folium_static
+from streamlit_folium import st_folium
 import plotly.express as px
 import pandas as pd
 import calendar
@@ -40,7 +40,7 @@ def render_shooting_heatmap(data):
             fg.add_to(m)
 
     folium.LayerControl().add_to(m)
-    folium_static(m)
+    st_folium(m)
 
 
 def geographical_analysis(data):

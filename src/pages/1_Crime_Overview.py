@@ -6,7 +6,7 @@ from utils.crime_categories import CRIME_PATTERNS
 import calendar
 import folium
 from folium.plugins import HeatMap
-from streamlit_folium import folium_static
+from streamlit_folium import st_folium
 from utils.crime_categories import CATEGORY_DISPLAY_NAMES
 
 
@@ -56,7 +56,7 @@ def render_category_heatmap(data):
         fg.add_to(m)
 
     folium.LayerControl(collapsed=False).add_to(m)
-    folium_static(m)
+    st_folium(m)
 
 
 def geographical_analysis(data):
