@@ -23,11 +23,14 @@ This analysis uses official crime incident reports from the Boston Police Depart
 Provided by: [Analyze Boston](https://data.boston.gov/) \
 Dataset: [Crime Incident Reports Dataset](https://data.boston.gov/dataset/crime-incident-reports-august-2015-to-date-source-new-system)  
 
-The dataset includes:
+#### The dataset includes:
 - Incident details and classifications
 - Geographic coordinates
 - Temporal information
 - District assignments
+#### Custom features:
+- Incident Category
+- District Name
 
 ## Navigation
 
