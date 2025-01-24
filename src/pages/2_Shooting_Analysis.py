@@ -5,7 +5,7 @@ from streamlit_folium import st_folium
 import plotly.express as px
 import pandas as pd
 import calendar
-from utils.helpers import load_data
+from utils.helpers import load_data, get_district_mapping
 
 
 @st.cache_data
@@ -44,6 +44,12 @@ def render_shooting_heatmap(data):
 
 
 def geographical_analysis(data):
+    data = data.copy()
+
+    if "DISTRICT_NAME" not in data.columns:
+        district_mapping = get_district_mapping()
+        data["DISTRICT_NAME"] = data["DISTRICT"].map(district_mapping)
+
     district_stats = (
         data.groupby(["DISTRICT", "DISTRICT_NAME"])
         .size()
