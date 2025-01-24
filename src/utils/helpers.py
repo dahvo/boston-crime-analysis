@@ -14,15 +14,11 @@ COMPILED_PATTERNS = {
 
 def categorize_crimes_vectorized(df):
     """Vectorized crime categorization"""
-    # Create a copy of the description column and convert to string
     descriptions = df["OFFENSE_DESCRIPTION"].fillna("UNKNOWN").astype(str)
 
-    # Initialize result series with 'other'
     categories = pd.Series("other", index=df.index)
 
-    # Apply each pattern to all descriptions at once
     for category, pattern in COMPILED_PATTERNS.items():
-        # Use pattern.search instead of str.contains for compiled patterns
         mask = descriptions.apply(lambda x: bool(pattern.search(x)))
         categories[mask] = category
 
@@ -48,16 +44,11 @@ def load_data():
             with st.spinner("Compiling data from source files..."):
                 process_data()
 
-        # Load and process data
         df = read_csv_chunked(data_path)
 
-        if len(df) < 350000:  # minimum expected rows
+        if len(df) < 350000:
             with st.spinner("Recompiling data..."):
                 df = process_data()
-
-        # Add district names
-        df["DISTRICT_NAME"] = df["DISTRICT"].map(get_district_mapping())
-
         return df
 
     except Exception as e:
@@ -68,14 +59,12 @@ def process_data():
     """Preprocess and save compiled data"""
     output_file = "data/processed/compiled_data.csv"
 
-    # Load and compile raw data
     df = compile_data()
 
-    # Clean and categorize in one pass
     df = clean_data(df)
     df["CATEGORY"] = categorize_crimes_vectorized(df)
+    df["DISTRICT_NAME"] = df["DISTRICT"].map(get_district_mapping())
 
-    # Save processed data
     ensure_dir(os.path.dirname(output_file))
     df.to_csv(output_file, index=False)
 
@@ -137,11 +126,9 @@ def compile_data():
     data_folder = "data/raw"
 
     try:
-        # Initialize empty dataframe
         compiled_df = pd.DataFrame()
         file_count = 0
 
-        # Process each CSV file
         for filename in os.listdir(data_folder):
             if filename.endswith(".csv"):
                 file_path = os.path.join(data_folder, filename)
@@ -150,7 +137,6 @@ def compile_data():
                 compiled_df = pd.concat([compiled_df, cleaned_df], ignore_index=True)
                 file_count += 1
 
-        # Validate compilation
         if file_count == 0:
             raise FileNotFoundError("No CSV files found in data folder")
 
