@@ -5,7 +5,7 @@ from streamlit_folium import st_folium
 import plotly.express as px
 import pandas as pd
 import calendar
-from utils.helpers import load_data, get_district_mapping
+from utils.helpers import load_data
 
 
 @st.cache_data
@@ -44,7 +44,6 @@ def render_shooting_heatmap(data):
 
 
 def geographical_analysis(data):
-
     district_stats = (
         data.groupby(["DISTRICT", "DISTRICT_NAME"])
         .size()
@@ -61,25 +60,14 @@ def geographical_analysis(data):
     )
     st.plotly_chart(fig_district, use_container_width=True)
 
-    district_details = district_stats.merge(
-        pd.DataFrame(
-            {
-                "DISTRICT": get_district_mapping().keys(),
-                "District Name": get_district_mapping().values(),
-            }
-        ),
-        on="DISTRICT",
-        how="right",
-    ).fillna(0)
-
-    district_details["% of Total Shootings"] = (
-        district_details["Count"] / len(data) * 100
+    district_stats["% of Total Shootings"] = (
+        district_stats["Count"] / len(data) * 100
     ).round(2)
 
     with st.expander("View District Details"):
         st.dataframe(
-            district_details[
-                ["DISTRICT", "District Name", "Count", "% of Total Shootings"]
+            district_stats[
+                ["DISTRICT", "DISTRICT_NAME", "Count", "% of Total Shootings"]
             ],
             use_container_width=True,
         )
