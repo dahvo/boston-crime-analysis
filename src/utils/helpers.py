@@ -4,16 +4,37 @@ from pathlib import Path
 import streamlit as st
 import re
 from .crime_categories import CRIME_PATTERNS
+import tempfile
 
-# Pre-compile patterns at module load
-COMPILED_PATTERNS = {
-    category: re.compile(pattern, flags=re.IGNORECASE)
-    for category, pattern in CRIME_PATTERNS.items()
-}
+
+@st.cache_data
+def load_data():
+    """Load and validate compiled crime data"""
+    try:
+        if "compiled_data" not in st.session_state:
+            with st.spinner("Compiling data from source files..."):
+                df = compile_data()
+                df = clean_data(df)
+                df = format_dates(df)
+                df["CATEGORY"] = categorize_crimes_vectorized(df)
+                df["DISTRICT_NAME"] = df["DISTRICT"].map(get_district_mapping())
+                st.session_state["compiled_data"] = df
+
+        return st.session_state["compiled_data"]
+
+    except Exception as e:
+        st.error(f"Error loading data: {str(e)}")
+        raise
 
 
 def categorize_crimes_vectorized(df):
     """Vectorized crime categorization"""
+
+    COMPILED_PATTERNS = {
+        category: re.compile(pattern, flags=re.IGNORECASE)
+        for category, pattern in CRIME_PATTERNS.items()
+    }
+
     descriptions = df["OFFENSE_DESCRIPTION"].fillna("UNKNOWN").astype(str)
 
     categories = pd.Series("other", index=df.index)
@@ -25,6 +46,14 @@ def categorize_crimes_vectorized(df):
     return categories
 
 
+def format_dates(df):
+    """Format date column to datetime"""
+
+    df["OCCURRED_ON_DATE"] = pd.to_datetime(df["OCCURRED_ON_DATE"], errors="coerce")
+
+    return df
+
+
 def read_csv_chunked(file_path, chunk_size=50000):
     """Read large CSV files in chunks and combine them"""
     chunks = []
@@ -32,43 +61,6 @@ def read_csv_chunked(file_path, chunk_size=50000):
         for chunk in pd.read_csv(file_path, chunksize=chunk_size, low_memory=False):
             chunks.append(chunk)
     return pd.concat(chunks, ignore_index=True)
-
-
-@st.cache_data
-def load_data():
-    """Load and validate compiled crime data"""
-    data_path = "data/processed/compiled_data.csv"
-
-    try:
-        if not os.path.exists(data_path):
-            with st.spinner("Compiling data from source files..."):
-                process_data()
-
-        df = read_csv_chunked(data_path)
-
-        if len(df) < 350000:
-            with st.spinner("Recompiling data..."):
-                df = process_data()
-        return df
-
-    except Exception as e:
-        raise ValueError(f"Error loading data: {str(e)}")
-
-
-def process_data():
-    """Preprocess and save compiled data"""
-    output_file = "data/processed/compiled_data.csv"
-
-    df = compile_data()
-
-    df = clean_data(df)
-    df["CATEGORY"] = categorize_crimes_vectorized(df)
-    df["DISTRICT_NAME"] = df["DISTRICT"].map(get_district_mapping())
-
-    ensure_dir(os.path.dirname(output_file))
-    df.to_csv(output_file, index=False)
-
-    return df
 
 
 def get_district_mapping():
@@ -88,37 +80,26 @@ def get_district_mapping():
     }
 
 
-def get_map_bounds(df):
-    """Calculate map center and zoom from data bounds"""
-    lat_min = df["Lat"].min()
-    lat_max = df["Lat"].max()
-    long_min = df["Long"].min()
-    long_max = df["Long"].max()
-
-    center_lat = (lat_min + lat_max) / 2
-    center_long = (long_min + long_max) / 2
-
-    return center_lat, center_long
-
-
 def clean_data(df):
     """Clean and filter the dataframe"""
+    # Drop rows outside of the year range
     df = df[df["YEAR"].astype(int) != 2025]
 
+    # Drop empty columns
     columns_to_drop = []
     if "UCR_PART" in df.columns:
         columns_to_drop.append("UCR_PART")
     if "OFFENSE_CODE_GROUP" in df.columns:
         columns_to_drop.append("OFFENSE_CODE_GROUP")
-
     if columns_to_drop:
         df = df.drop(columns=columns_to_drop)
 
+    # Remove a typo from the underlying dataset
+    df["OFFENSE_DESCRIPTION"] = df["OFFENSE_DESCRIPTION"].str.replace(
+        "NEGLIGIENT", "NEGLIGENT"
+    )
+
     return df
-
-
-def ensure_dir(directory):
-    Path(directory).mkdir(parents=True, exist_ok=True)
 
 
 def compile_data():
@@ -128,6 +109,10 @@ def compile_data():
     try:
         compiled_df = pd.DataFrame()
         file_count = 0
+
+        if not os.path.exists(data_folder):
+            st.error(f"Data folder not found: {data_folder}")
+            raise FileNotFoundError(f"Data folder not found: {data_folder}")
 
         for filename in os.listdir(data_folder):
             if filename.endswith(".csv"):
