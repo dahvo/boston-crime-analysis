@@ -54,15 +54,6 @@ def format_dates(df):
     return df
 
 
-def read_csv_chunked(file_path, chunk_size=50000):
-    """Read large CSV files in chunks and combine them"""
-    chunks = []
-    with st.spinner("Reading data in chunks..."):
-        for chunk in pd.read_csv(file_path, chunksize=chunk_size, low_memory=False):
-            chunks.append(chunk)
-    return pd.concat(chunks, ignore_index=True)
-
-
 def get_district_mapping():
     return {
         "A1": "Downtown/Beacon Hill",
