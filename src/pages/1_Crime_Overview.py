@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from utils.helpers import load_data, get_district_mapping, get_map_bounds
+from utils.helpers import load_data, get_district_mapping
 from utils.crime_categories import CRIME_PATTERNS
 import calendar
 import folium
