@@ -9,7 +9,6 @@ from utils.crime_categories import CATEGORY_DISPLAY_NAMES
 
 
 def calculate_yearly_change(df, category):
-    """Calculate average yearly change for a category"""
     yearly_counts = df[df["CATEGORY"] == category].groupby("YEAR").size().sort_index()
 
     if len(yearly_counts) < 2:
@@ -21,7 +20,6 @@ def calculate_yearly_change(df, category):
 
 @st.cache_data
 def load_heatmap_data(data):
-    """Prepare and cache heatmap data for faster rendering"""
     valid_locations = data.dropna(subset=["Lat", "Long"])
     if valid_locations.empty:
         return None
@@ -36,7 +34,6 @@ def load_heatmap_data(data):
 
 
 def render_category_heatmap(data):
-    """Render heatmap of shooting locations"""
     category_data = load_heatmap_data(data)
 
     if category_data is None:
@@ -222,7 +219,6 @@ def crime_patterns(data):
 
 
 def display_categories(series):
-    """Convert category codes to display names"""
     return series.map(CATEGORY_DISPLAY_NAMES)
 
 
