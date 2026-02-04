@@ -1,19 +1,26 @@
 import pandas as pd
-import os
 from pathlib import Path
 import streamlit as st
-import re
 from .crime_categories import CRIME_PATTERNS
-import tempfile
 
 
 @st.cache_data
 def load_data():
-    """Load and validate compiled crime data"""
+    """Load and validate compiled crime data (try parquet first for speed)"""
     try:
         if "compiled_data" not in st.session_state:
-            with st.spinner("Compiling data from source files..."):
-                df = compile_data()
+            with st.spinner("Loading crime data..."):
+                # Try to load cached parquet file first (much faster)
+                parquet_path = Path("data/processed/compiled_data.parquet")
+                if parquet_path.exists():
+                    try:
+                        df = pd.read_parquet(parquet_path)
+                    except Exception:
+                        # Fallback to compile from CSVs
+                        df = compile_data()
+                else:
+                    df = compile_data()
+                
                 df = clean_data(df)
                 df = format_dates(df)
                 df["CATEGORY"] = categorize_crimes_vectorized(df)
@@ -29,19 +36,13 @@ def load_data():
 
 def categorize_crimes_vectorized(df):
     """Vectorized crime categorization"""
-
-    COMPILED_PATTERNS = {
-        category: re.compile(pattern, flags=re.IGNORECASE)
-        for category, pattern in CRIME_PATTERNS.items()
-    }
-
-    descriptions = df["OFFENSE_DESCRIPTION"].fillna("UNKNOWN").astype(str)
+    descriptions = df["OFFENSE_DESCRIPTION"].fillna("").astype(str)
 
     categories = pd.Series("other", index=df.index)
 
-    for category, pattern in COMPILED_PATTERNS.items():
-        mask = descriptions.apply(lambda x: bool(pattern.search(x)))
-        categories[mask] = category
+    for category, pattern in CRIME_PATTERNS.items():
+        mask = descriptions.str.contains(pattern, case=False, na=False, regex=True)
+        categories.loc[mask] = category
 
     return categories
 
@@ -73,8 +74,9 @@ def get_district_mapping():
 
 def clean_data(df):
     """Clean and filter the dataframe"""
-    # Drop rows outside of the year range
-    df = df[df["YEAR"].astype(int) != 2025]
+    # Drop rows outside of the year range (safe numeric conversion)
+    df["YEAR"] = pd.to_numeric(df["YEAR"], errors="coerce").astype("Int64")
+    df = df[df["YEAR"] != 2025]
 
     # Drop empty columns
     columns_to_drop = []
@@ -85,9 +87,9 @@ def clean_data(df):
     if columns_to_drop:
         df = df.drop(columns=columns_to_drop)
 
-    # Remove a typo from the underlying dataset
+    # Remove a typo from the underlying dataset (literal replace)
     df["OFFENSE_DESCRIPTION"] = df["OFFENSE_DESCRIPTION"].str.replace(
-        "NEGLIGIENT", "NEGLIGENT"
+        "NEGLIGIENT", "NEGLIGENT", regex=False
     )
 
     return df
@@ -95,29 +97,34 @@ def clean_data(df):
 
 def compile_data():
     """Compile raw data files into single dataset"""
-    data_folder = "data/raw"
+    data_folder = Path("data/raw")
 
+    if not data_folder.exists():
+        st.error(f"Data folder not found: {data_folder}")
+        raise FileNotFoundError(f"Data folder not found: {data_folder}")
+
+    dfs = []
+    for fp in data_folder.glob("*.csv"):
+        try:
+            df = pd.read_csv(fp, low_memory=False)
+            df = clean_data(df)
+            dfs.append(df)
+        except Exception as e:
+            st.warning(f"Failed to read {fp.name}: {e}")
+
+    if not dfs:
+        raise FileNotFoundError("No CSV files found in data folder")
+
+    compiled_df = pd.concat(dfs, ignore_index=True)
+
+    # Persist compiled dataset for faster subsequent loads
+    processed_dir = Path("data/processed")
+    processed_dir.mkdir(parents=True, exist_ok=True)
+    compiled_path = processed_dir / "compiled_data.parquet"
     try:
-        compiled_df = pd.DataFrame()
-        file_count = 0
+        compiled_df.to_parquet(compiled_path, index=False)
+    except Exception:
+        # If parquet isn't available, skip write but return the dataframe
+        pass
 
-        if not os.path.exists(data_folder):
-            st.error(f"Data folder not found: {data_folder}")
-            raise FileNotFoundError(f"Data folder not found: {data_folder}")
-
-        for filename in os.listdir(data_folder):
-            if filename.endswith(".csv"):
-                file_path = os.path.join(data_folder, filename)
-                df = pd.read_csv(file_path, low_memory=False)
-                cleaned_df = clean_data(df)
-                compiled_df = pd.concat([compiled_df, cleaned_df], ignore_index=True)
-                file_count += 1
-
-        if file_count == 0:
-            raise FileNotFoundError("No CSV files found in data folder")
-
-        return compiled_df
-
-    except Exception as e:
-        st.error(f"Error compiling data: {str(e)}")
-        raise
+    return compiled_df
