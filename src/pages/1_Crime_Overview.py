@@ -25,17 +25,16 @@ def calculate_yearly_change(df, category):
 def load_heatmap_data(data):
     """Prepare and cache heatmap data for faster rendering"""
     valid_locations = data.dropna(subset=["Lat", "Long"])
-    if len(valid_locations) == 0:
+    if valid_locations.empty:
         return None
 
-    category_data = {}
-    for category in valid_locations["CATEGORY"].unique():
-        cat_data = valid_locations[valid_locations["CATEGORY"] == category]
-        heat_data = [[row["Lat"], row["Long"]] for _, row in cat_data.iterrows()]
-        if heat_data:
-            category_data[category] = heat_data
+    category_data = {
+        cat: grp.loc[:, ["Lat", "Long"]].values.tolist()
+        for cat, grp in valid_locations.groupby("CATEGORY")
+        if not grp.empty
+    }
 
-    return category_data
+    return category_data or None
 
 
 def render_category_heatmap(data):
@@ -52,11 +51,12 @@ def render_category_heatmap(data):
 
     for category, heat_data in category_data.items():
         fg = folium.FeatureGroup(name=str(category))
-        HeatMap(heat_data, radius=14, blur=10, max_zoom=13).add_to(fg)
+        HeatMap(heat_data, radius=14, blur=10, max_zoom=13, min_opacity=0.5).add_to(fg)
         fg.add_to(m)
 
     folium.LayerControl(collapsed=False).add_to(m)
-    st_folium(m)
+    st_folium(m, use_container_width=True, height=500)
+    
 
 
 def geographical_analysis(data):
