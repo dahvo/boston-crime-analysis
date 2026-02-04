@@ -51,7 +51,7 @@ def render_category_heatmap(data):
         fg.add_to(m)
 
     folium.LayerControl(collapsed=False).add_to(m)
-    st_folium(m, use_container_width=True, height=500)
+    st_folium(m, width='stretch', height=500)
     
 
 
@@ -100,7 +100,7 @@ def geographical_analysis(data):
         lambda t: t.update(name=CATEGORY_DISPLAY_NAMES.get(t.name, t.name))
     )
 
-    st.plotly_chart(fig_district, use_container_width=True)
+    st.plotly_chart(fig_district, width='stretch')
 
 
 def render_category_breakdown(data):
@@ -152,9 +152,9 @@ def render_category_breakdown(data):
                     search, case=False
                 )
             ]
-            st.dataframe(filtered_df[display_cols], use_container_width=True)
+            st.dataframe(filtered_df[display_cols], width='stretch')
         else:
-            st.dataframe(categorization_df[display_cols], use_container_width=True)
+            st.dataframe(categorization_df[display_cols], width='stretch')
 
 
 def temporal_analysis(data):
@@ -182,7 +182,7 @@ def temporal_analysis(data):
             title="Incidents by Day of Week",
             labels={"x": "Day of the week", "y": "Number of Incidents"},
         )
-        st.plotly_chart(fig_daily, use_container_width=True)
+        st.plotly_chart(fig_daily, width='stretch')
 
     with tab2:
         monthly_crimes = data["MONTH"].value_counts().sort_index()
@@ -195,7 +195,7 @@ def temporal_analysis(data):
             title="Monthly Crime Trend",
             labels={"x": "Month", "y": "Number of Incidents"},
         )
-        st.plotly_chart(fig_monthly, use_container_width=True)
+        st.plotly_chart(fig_monthly, width='stretch')
 
     with tab3:
         yearly_crimes = data["YEAR"].value_counts().sort_index()
@@ -205,7 +205,7 @@ def temporal_analysis(data):
             title="Yearly Distribution",
             labels={"x": "Year", "y": "Number of Incidents"},
         )
-        st.plotly_chart(fig_yearly, use_container_width=True)
+        st.plotly_chart(fig_yearly, width='stretch')
 
 
 def crime_patterns(data):
@@ -215,7 +215,7 @@ def crime_patterns(data):
         names=display_categories(top_crimes.index),
         title="Crime Categories Distribution",
     )
-    st.plotly_chart(fig_crimes, use_container_width=True)
+    st.plotly_chart(fig_crimes, width='stretch')
 
 
 def display_categories(series):
