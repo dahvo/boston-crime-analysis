@@ -10,13 +10,11 @@ def load_data():
     try:
         if "compiled_data" not in st.session_state:
             with st.spinner("Loading crime data..."):
-                # Try to load cached parquet file first (much faster)
                 parquet_path = Path("data/processed/compiled_data.parquet")
                 if parquet_path.exists():
                     try:
                         df = pd.read_parquet(parquet_path)
                     except Exception:
-                        # Fallback to compile from CSVs
                         df = compile_data()
                 else:
                     df = compile_data()
@@ -74,11 +72,9 @@ def get_district_mapping():
 
 def clean_data(df):
     """Clean and filter the dataframe"""
-    # Drop rows outside of the year range (safe numeric conversion)
     df["YEAR"] = pd.to_numeric(df["YEAR"], errors="coerce").astype("Int64")
     df = df[df["YEAR"] != 2025]
 
-    # Drop empty columns
     columns_to_drop = []
     if "UCR_PART" in df.columns:
         columns_to_drop.append("UCR_PART")
@@ -87,7 +83,7 @@ def clean_data(df):
     if columns_to_drop:
         df = df.drop(columns=columns_to_drop)
 
-    # Remove a typo from the underlying dataset (literal replace)
+
     df["OFFENSE_DESCRIPTION"] = df["OFFENSE_DESCRIPTION"].str.replace(
         "NEGLIGIENT", "NEGLIGENT", regex=False
     )
@@ -117,14 +113,12 @@ def compile_data():
 
     compiled_df = pd.concat(dfs, ignore_index=True)
 
-    # Persist compiled dataset for faster subsequent loads
     processed_dir = Path("data/processed")
     processed_dir.mkdir(parents=True, exist_ok=True)
     compiled_path = processed_dir / "compiled_data.parquet"
     try:
         compiled_df.to_parquet(compiled_path, index=False)
     except Exception:
-        # If parquet isn't available, skip write but return the dataframe
         pass
 
     return compiled_df
