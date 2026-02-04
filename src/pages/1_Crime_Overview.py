@@ -18,6 +18,18 @@ def calculate_yearly_change(df, category):
     return yearly_changes.mean()
 
 
+def calculate_yearly_change_offense(df, offense):
+    yearly_counts = (
+        df[df["OFFENSE_DESCRIPTION"] == offense].groupby("YEAR").size().sort_index()
+    )
+
+    if len(yearly_counts) < 2:
+        return 0
+
+    yearly_changes = yearly_counts.pct_change() * 100
+    return yearly_changes.mean()
+
+
 @st.cache_data
 def load_heatmap_data(data):
     valid_locations = data.dropna(subset=["Lat", "Long"])
@@ -119,13 +131,13 @@ def render_category_breakdown(data):
             categorization_df["Count"] / total_by_category * 100
         ).round(2)
 
-        unique_categories = categorization_df["CATEGORY"].unique()
+        unique_offenses = categorization_df["OFFENSE_DESCRIPTION"].unique()
         yearly_changes = {
-            cat: calculate_yearly_change(data, cat) for cat in unique_categories
+            off: calculate_yearly_change_offense(data, off) for off in unique_offenses
         }
 
         categorization_df["% Change YoY"] = (
-            categorization_df["CATEGORY"].map(yearly_changes).round(2)
+            categorization_df["OFFENSE_DESCRIPTION"].map(yearly_changes).round(2)
         )
 
         categorization_df = categorization_df.sort_values(
