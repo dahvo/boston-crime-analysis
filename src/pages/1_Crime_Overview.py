@@ -1,8 +1,6 @@
 import streamlit as st
-import pandas as pd
 import plotly.express as px
 from utils.helpers import load_data, get_district_mapping
-from utils.crime_categories import CRIME_PATTERNS
 import calendar
 import folium
 from folium.plugins import HeatMap
@@ -50,8 +48,9 @@ def render_category_heatmap(data):
     )
 
     for category, heat_data in category_data.items():
-        fg = folium.FeatureGroup(name=str(category))
-        HeatMap(heat_data, radius=14, blur=10, max_zoom=13, min_opacity=0.5).add_to(fg)
+        display_name = CATEGORY_DISPLAY_NAMES.get(category, str(category))
+        fg = folium.FeatureGroup(name=display_name)
+        HeatMap(heat_data, radius=14, blur=10, max_zoom=13).add_to(fg)
         fg.add_to(m)
 
     folium.LayerControl(collapsed=False).add_to(m)
@@ -147,7 +146,7 @@ def render_category_breakdown(data):
             "OFFENSE_DESCRIPTION",
             "Category",
             "Count",
-            f"% of category",
+            "% of category",
             "% Change YoY",
         ]
         if search:
