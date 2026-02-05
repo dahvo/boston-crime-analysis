@@ -6,7 +6,6 @@ from .crime_categories import CRIME_PATTERNS
 
 @st.cache_data
 def load_data():
-    """Load and validate compiled crime data (try parquet first for speed)"""
     try:
         if "compiled_data" not in st.session_state:
             with st.spinner("Loading crime data..."):
@@ -71,9 +70,7 @@ def get_district_mapping():
 
 
 def clean_data(df):
-    """Clean and filter the dataframe"""
     df["YEAR"] = pd.to_numeric(df["YEAR"], errors="coerce").astype("Int64")
-    df = df[df["YEAR"] != 2025]
 
     columns_to_drop = []
     if "UCR_PART" in df.columns:
@@ -92,7 +89,6 @@ def clean_data(df):
 
 
 def compile_data():
-    """Compile raw data files into single dataset"""
     data_folder = Path("data/raw")
 
     if not data_folder.exists():

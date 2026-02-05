@@ -1,8 +1,8 @@
-# 🚔 Boston Crime Analysis 2020-2024 Dashboard
+# 🚔 Boston Crime Analysis 2020-2026 Dashboard
 
 ## About This Project
 
-This interactive dashboard analyzes crime incident reports from the Boston Police Department (BPD), providing comprehensive insights into crime patterns across the city. The analysis covers various types of incidents, their geographical distribution, and temporal patterns. This report covers incidents from 2020-2024.
+This interactive dashboard analyzes crime incident reports from the Boston Police Department (BPD), providing comprehensive insights into crime patterns across the city. The analysis covers various types of incidents, their geographical distribution, and temporal patterns. This report covers incidents from 2020-2026.
 
 ## Features & Analysis
 
