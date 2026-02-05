@@ -3,7 +3,6 @@ import folium
 from folium.plugins import HeatMap
 from streamlit_folium import st_folium
 import plotly.express as px
-import pandas as pd
 import calendar
 from utils.helpers import load_data, get_district_mapping
 
@@ -64,7 +63,7 @@ def geographical_analysis(data):
         title="Shootings by District",
         hover_data=["DISTRICT_NAME"],
     )
-    st.plotly_chart(fig_district, use_container_width=True)
+    st.plotly_chart(fig_district, width='content')
 
     district_stats["% of Total Shootings"] = (
         district_stats["Count"] / len(data) * 100
@@ -75,7 +74,7 @@ def geographical_analysis(data):
             district_stats[
                 ["DISTRICT", "DISTRICT_NAME", "Count", "% of Total Shootings"]
             ],
-            use_container_width=True,
+            width='content',
         )
 
 
@@ -91,7 +90,7 @@ def temporal_analysis(data):
             title="Shootings by Hour of Day",
             labels={"x": "Hour (24h)", "y": "Number of Incidents"},
         )
-        st.plotly_chart(fig_hourly, use_container_width=True)
+        st.plotly_chart(fig_hourly, width='content')
 
         dow_counts = (
             data["DAY_OF_WEEK"]
@@ -114,7 +113,7 @@ def temporal_analysis(data):
             title="Shootings by Day of Week",
             labels={"x": "Day of the Week", "y": "Number of Incidents"},
         )
-        st.plotly_chart(fig_dow, use_container_width=True)
+        st.plotly_chart(fig_dow, width='content')
 
     with tab2:
         monthly = data["MONTH"].value_counts().sort_index()
@@ -126,7 +125,7 @@ def temporal_analysis(data):
             title="Monthly Distribution",
             markers=True,
         )
-        st.plotly_chart(fig_monthly, use_container_width=True)
+        st.plotly_chart(fig_monthly, width='content')
 
     with tab3:
         yearly = data["YEAR"].value_counts().sort_index()
@@ -136,7 +135,7 @@ def temporal_analysis(data):
             title="Yearly Distribution",
             labels={"x": "Year", "y": "Number of Incidents"},
         )
-        st.plotly_chart(fig_yearly, use_container_width=True)
+        st.plotly_chart(fig_yearly, width='content')
 
 
 def offense_analysis(data):
@@ -147,7 +146,7 @@ def offense_analysis(data):
         names=offense_counts.index,
         title="Top Shooting-Related Offense Types",
     )
-    st.plotly_chart(fig_offense, use_container_width=True)
+    st.plotly_chart(fig_offense, width='content')
 
 
 def show_insights():
