@@ -1,7 +1,4 @@
 import streamlit as st
-import folium
-from folium.plugins import HeatMap
-from streamlit_folium import st_folium
 import plotly.express as px
 import calendar
 from utils.helpers import load_data, get_district_mapping
@@ -10,14 +7,6 @@ from utils.helpers import load_data, get_district_mapping
 @st.cache_data
 def get_shootings_data(df):
     return df[df["SHOOTING"] == 1]
-
-
-def create_map():
-    """Create a new map instance"""
-    return folium.Map(
-        location=[42.32000, -71.057083], zoom_start=11, tiles="OpenStreetMap"
-    )
-
 
 def geographical_analysis(data):
     data = data.copy()
