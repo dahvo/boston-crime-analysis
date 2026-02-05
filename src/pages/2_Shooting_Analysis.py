@@ -19,29 +19,6 @@ def create_map():
     )
 
 
-def render_shooting_heatmap(data):
-    valid_locations = data.dropna(subset=["Lat", "Long"])
-
-    if len(valid_locations) == 0:
-        st.warning("No valid location data available for heatmap")
-        return
-
-    m = create_map()
-
-    years = valid_locations["YEAR"].unique()
-    for year in years:
-        year_data = valid_locations[valid_locations["YEAR"] == year]
-        heat_data = [[row["Lat"], row["Long"]] for _, row in year_data.iterrows()]
-
-        if heat_data:
-            fg = folium.FeatureGroup(name=str(year))
-            HeatMap(heat_data, radius=14, blur=10, max_zoom=13).add_to(fg)
-            fg.add_to(m)
-
-    folium.LayerControl().add_to(m)
-    st_folium(m)
-
-
 def geographical_analysis(data):
     data = data.copy()
 
@@ -76,7 +53,6 @@ def geographical_analysis(data):
             ],
             width='content',
         )
-
 
 def temporal_analysis(data):
 
@@ -139,7 +115,6 @@ def temporal_analysis(data):
 
 
 def offense_analysis(data):
-
     offense_counts = data["OFFENSE_DESCRIPTION"].value_counts().head(10)
     fig_offense = px.pie(
         values=offense_counts.values,
@@ -168,9 +143,6 @@ def show_insights():
 
     st.subheader("Geographic Distribution")
     geographical_analysis(shootings)
-
-    st.subheader("Shooting Hotspots")
-    render_shooting_heatmap(shootings)
 
     st.subheader("Offense Analysis")
     offense_analysis(shootings)

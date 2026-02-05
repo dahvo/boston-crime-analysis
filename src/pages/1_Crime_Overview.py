@@ -2,9 +2,6 @@ import streamlit as st
 import plotly.express as px
 from utils.helpers import load_data, get_district_mapping
 import calendar
-import folium
-from folium.plugins import HeatMap
-from streamlit_folium import st_folium
 from utils.crime_categories import CATEGORY_DISPLAY_NAMES
 
 
@@ -28,44 +25,6 @@ def calculate_yearly_change_offense(df, offense):
 
     yearly_changes = yearly_counts.pct_change() * 100
     return yearly_changes.mean()
-
-
-@st.cache_data
-def load_heatmap_data(data):
-    valid_locations = data.dropna(subset=["Lat", "Long"])
-    if valid_locations.empty:
-        return None
-
-    category_data = {
-        cat: grp.loc[:, ["Lat", "Long"]].values.tolist()
-        for cat, grp in valid_locations.groupby("CATEGORY")
-        if not grp.empty
-    }
-
-    return category_data or None
-
-
-def render_category_heatmap(data):
-    category_data = load_heatmap_data(data)
-
-    if category_data is None:
-        st.warning("No valid location data available for heatmap")
-        return
-
-    m = folium.Map(
-        location=[42.32000, -71.057083], zoom_start=11, tiles="OpenStreetMap"
-    )
-
-    for category, heat_data in category_data.items():
-        display_name = CATEGORY_DISPLAY_NAMES.get(category, str(category))
-        fg = folium.FeatureGroup(name=display_name)
-        HeatMap(heat_data, radius=14, blur=10, max_zoom=13).add_to(fg)
-        fg.add_to(m)
-
-    folium.LayerControl(collapsed=False).add_to(m)
-    st_folium(m, width='stretch', height=500)
-    
-
 
 def geographical_analysis(data):
 
@@ -261,11 +220,6 @@ def show_insights():
     # 4. Geographic Analysis
     st.subheader("Geographic Distribution")
     geographical_analysis(df)
-
-    # 5. Cateorical Heatmap
-    st.subheader("Categorical Incidents Heatmap")
-    render_category_heatmap(df)
-
 
 if __name__ == "__main__":
     st.set_page_config(
