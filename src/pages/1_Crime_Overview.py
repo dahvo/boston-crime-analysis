@@ -129,9 +129,20 @@ def render_category_breakdown(data):
 
 
 def temporal_analysis(data):
-    tab1, tab2, tab3 = st.tabs(["Daily", "Monthly", "Yearly"])
+    tab1, tab2, tab3, tab4 = st.tabs(["Hourly","Daily", "Monthly", "Yearly"])
 
     with tab1:
+        hourly_crimes = data["HOUR"].value_counts().sort_index()
+        fig_hourly = px.bar(
+            x=hourly_crimes.index,
+            y=hourly_crimes.values,
+            title="Incidents by Hour of Day",
+            labels={"x": "Hour (24h)", "y": "Number of Incidents"},
+        )
+        st.plotly_chart(fig_hourly, width='stretch')
+
+
+    with tab2:
         daily_crimes = (
             data["DAY_OF_WEEK"]
             .value_counts()
@@ -155,7 +166,7 @@ def temporal_analysis(data):
         )
         st.plotly_chart(fig_daily, width='stretch')
 
-    with tab2:
+    with tab3:
         monthly_crimes = data["MONTH"].value_counts().sort_index()
         month_names = {i: calendar.month_name[i] for i in monthly_crimes.index}
         monthly_crimes.index = monthly_crimes.index.map(month_names)
@@ -168,7 +179,7 @@ def temporal_analysis(data):
         )
         st.plotly_chart(fig_monthly, width='stretch')
 
-    with tab3:
+    with tab4:
         yearly_crimes = data["YEAR"].value_counts().sort_index()
         fig_yearly = px.bar(
             x=yearly_crimes.index,

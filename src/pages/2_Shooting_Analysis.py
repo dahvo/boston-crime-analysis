@@ -10,13 +10,12 @@ def get_shootings_data(df):
 
 def geographical_analysis(data):
     data = data.copy()
-
     if "DISTRICT_NAME" not in data.columns:
         district_mapping = get_district_mapping()
         data["DISTRICT_NAME"] = data["DISTRICT"].map(district_mapping)
 
     district_stats = (
-        data.groupby(["DISTRICT", "DISTRICT_NAME"])
+        data.groupby(["DISTRICT_NAME"])  # group by name rather than number
         .size()
         .reset_index(name="Count")
         .sort_values("Count", ascending=False)
@@ -24,28 +23,25 @@ def geographical_analysis(data):
 
     fig_district = px.bar(
         district_stats,
-        x="DISTRICT",
+        x="DISTRICT_NAME",
         y="Count",
-        title="Shootings by District",
-        hover_data=["DISTRICT_NAME"],
+        title="Shootings by District (Name)",
+        hover_data=[],
     )
     st.plotly_chart(fig_district, width='content')
-
     district_stats["% of Total Shootings"] = (
         district_stats["Count"] / len(data) * 100
     ).round(2)
 
     with st.expander("View District Details"):
         st.dataframe(
-            district_stats[
-                ["DISTRICT", "DISTRICT_NAME", "Count", "% of Total Shootings"]
-            ],
+            district_stats[["DISTRICT_NAME", "Count", "% of Total Shootings"]],
             width='content',
         )
 
 def temporal_analysis(data):
 
-    tab1, tab2, tab3 = st.tabs(["Daily", "Monthly", "Yearly"])
+    tab1, tab2, tab3, tab4 = st.tabs(["Hourly", "Daily", "Monthly", "Yearly"])
 
     with tab1:
         hourly = data["HOUR"].value_counts().sort_index()
@@ -56,7 +52,8 @@ def temporal_analysis(data):
             labels={"x": "Hour (24h)", "y": "Number of Incidents"},
         )
         st.plotly_chart(fig_hourly, width='content')
-
+    
+    with tab2:
         dow_counts = (
             data["DAY_OF_WEEK"]
             .value_counts()
@@ -80,7 +77,8 @@ def temporal_analysis(data):
         )
         st.plotly_chart(fig_dow, width='content')
 
-    with tab2:
+
+    with tab3:
         monthly = data["MONTH"].value_counts().sort_index()
         month_names = {i: calendar.month_name[i] for i in monthly.index}
         monthly.index = monthly.index.map(month_names)
@@ -92,7 +90,7 @@ def temporal_analysis(data):
         )
         st.plotly_chart(fig_monthly, width='content')
 
-    with tab3:
+    with tab4:
         yearly = data["YEAR"].value_counts().sort_index()
         fig_yearly = px.bar(
             x=yearly.index,
@@ -117,15 +115,19 @@ def show_insights():
     st.title("Boston Shootings Analysis")
     df = load_data()
     shootings = get_shootings_data(df)
+    # ensure district names are available for metrics and plots
+    if "DISTRICT_NAME" not in shootings.columns:
+        district_mapping = get_district_mapping()
+        shootings["DISTRICT_NAME"] = shootings["DISTRICT"].map(district_mapping)
 
     col1, col2, col3 = st.columns(3)
     with col1:
         st.metric("Total Shootings", len(shootings))
     with col2:
-        st.metric("Districts Affected", shootings["DISTRICT"].nunique())
+        st.metric("Districts Affected", shootings["DISTRICT_NAME"].nunique())
     with col3:
         shooting_rate = round((len(shootings) / len(df) * 100), 2)
-        st.metric(f"% of Total Crime", f"{shooting_rate}%")
+        st.metric("% of Total Crime", f"{shooting_rate}%")
 
     st.subheader("Temporal Patterns")
     temporal_analysis(shootings)
